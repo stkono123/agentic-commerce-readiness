@@ -17,7 +17,10 @@ export default function Home() {
   const [progress, setProgress] = useState(0);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
-  const reportReady = useMemo(() => Boolean(htmlReport), [htmlReport]);
+  const hasRenderableHtml = useMemo(() => {
+    if (!htmlReport) return false;
+    return htmlReport.includes("<!DOCTYPE") || htmlReport.includes("<html");
+  }, [htmlReport]);
 
   useEffect(() => {
     if (!isLoading) {
@@ -90,9 +93,9 @@ export default function Home() {
         setHtmlReport(streamedHtml);
       }
 
-      const htmlStart = streamedHtml.indexOf("<!DOCTYPE");
-      const htmlStartAlt = streamedHtml.indexOf("<html");
-      const start = htmlStart !== -1 ? htmlStart : htmlStartAlt;
+      const doctypeIndex = streamedHtml.lastIndexOf("<!DOCTYPE");
+      const htmlIndex = streamedHtml.lastIndexOf("<html");
+      const start = Math.max(doctypeIndex, htmlIndex);
       const cleanedHtml = start !== -1 ? streamedHtml.slice(start) : streamedHtml;
 
       setHtmlReport(cleanedHtml);
@@ -225,7 +228,7 @@ export default function Home() {
           </form>
 
           <div className="flex min-h-[640px] flex-col rounded-3xl border border-white/10 bg-slate-900/70 p-3 shadow-2xl backdrop-blur">
-            {reportReady ? (
+            {hasRenderableHtml ? (
               <>
                 <div className="mb-3 flex items-center justify-between px-2 py-1">
                   <p className="text-sm font-medium text-slate-200">Generated report preview</p>
