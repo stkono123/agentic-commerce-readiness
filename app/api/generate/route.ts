@@ -2,6 +2,8 @@ import { readFile } from "fs/promises";
 import path from "path";
 import { NextRequest, NextResponse } from "next/server";
 
+export const runtime = "edge";
+
 const SECTOR_SKILL_FILES: Record<string, string> = {
   "B2B Industrial": "SKILL_B2B_Industrial.md",
   "D2C Consumer": "SKILL_D2C_Consumer.md",
