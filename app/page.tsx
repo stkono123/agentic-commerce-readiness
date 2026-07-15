@@ -89,6 +89,13 @@ export default function Home() {
         streamedHtml += trailingChunk;
         setHtmlReport(streamedHtml);
       }
+
+      const htmlStart = streamedHtml.indexOf("<!DOCTYPE");
+      const htmlStartAlt = streamedHtml.indexOf("<html");
+      const start = htmlStart !== -1 ? htmlStart : htmlStartAlt;
+      const cleanedHtml = start !== -1 ? streamedHtml.slice(start) : streamedHtml;
+
+      setHtmlReport(cleanedHtml);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to generate the report.");
     } finally {

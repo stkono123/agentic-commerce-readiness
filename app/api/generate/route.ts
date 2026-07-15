@@ -136,7 +136,6 @@ export async function POST(request: NextRequest) {
         const reader = response.body?.getReader();
         const decoder = new TextDecoder();
         let buffer = "";
-        let accumulatedText = "";
 
         if (!reader) {
           controller.close();
@@ -159,7 +158,7 @@ export async function POST(request: NextRequest) {
               const textChunk = extractTextFromSseEvent(event);
 
               if (textChunk) {
-                accumulatedText += textChunk;
+                controller.enqueue(encoder.encode(textChunk));
               }
             }
           }
@@ -171,17 +170,8 @@ export async function POST(request: NextRequest) {
             const textChunk = extractTextFromSseEvent(event);
 
             if (textChunk) {
-              accumulatedText += textChunk;
+              controller.enqueue(encoder.encode(textChunk));
             }
-          }
-
-          const htmlStart = accumulatedText.indexOf("<!DOCTYPE");
-          const htmlStartAlt = accumulatedText.indexOf("<html");
-          const start = htmlStart !== -1 ? htmlStart : htmlStartAlt;
-          const cleaned = start !== -1 ? accumulatedText.slice(start) : accumulatedText;
-
-          if (cleaned) {
-            controller.enqueue(encoder.encode(cleaned));
           }
         } catch (error) {
           console.error("Streaming report generation failed", error);
