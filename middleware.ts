@@ -1,24 +1,21 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-
-const EXCLUDED_PATHS = ["/login", "/api/login"];
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const auth = request.cookies.get('auth')?.value
+  const { pathname } = request.nextUrl
 
-  if (EXCLUDED_PATHS.includes(pathname)) {
-    return NextResponse.next();
+  if (pathname.startsWith('/login') || pathname.startsWith('/api/login')) {
+    return NextResponse.next()
   }
 
-  const authCookie = request.cookies.get("auth")?.value;
-
-  if (authCookie === "acn-song-2026") {
-    return NextResponse.next();
+  if (auth !== 'acn-song-2026') {
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  return NextResponse.redirect(new URL("/login", request.url));
+  return NextResponse.next()
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
-};
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+}
