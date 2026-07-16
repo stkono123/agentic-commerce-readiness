@@ -7,10 +7,12 @@ import {
   SKILL_RENDER,
 } from "./skills";
 
-const SECTOR_SKILL_CONTENT: Record<string, string> = {
-  "B2B Industrial": SKILL_B2B,
-  "D2C Consumer": SKILL_D2C,
-  "Financial Services": SKILL_FS,
+const BUSINESS_MODEL_SKILL_CONTENT: Record<string, string> = {
+  B2B: SKILL_B2B,
+  "B2B Other": SKILL_B2B,
+  D2C: SKILL_D2C,
+  "D2C Other": SKILL_D2C,
+  Other: SKILL_D2C,
 };
 
 const FINAL_INSTRUCTION =
@@ -20,18 +22,21 @@ const WEB_SEARCH_INSTRUCTION =
 
 export const maxDuration = 300;
 
-function buildSystemPrompt(sector: string) {
-  const sectorSkillContent = SECTOR_SKILL_CONTENT[sector] ?? "";
-
-  return [
-    sectorSkillContent,
+function buildSystemPrompt(businessModel: string, industry: string) {
+  const businessModelSkillContent = BUSINESS_MODEL_SKILL_CONTENT[businessModel] ?? SKILL_D2C;
+  const sections = [
+    businessModelSkillContent,
     SKILL_RENDER,
     REPORT_TEMPLATE,
     FINAL_INSTRUCTION,
     WEB_SEARCH_INSTRUCTION,
-  ]
-    .filter(Boolean)
-    .join("\n\n");
+  ];
+
+  if (industry === "Financial Services") {
+    sections.push(SKILL_FS);
+  }
+
+  return sections.filter(Boolean).join("\n\n");
 }
 
 function extractTextFromSseEvent(eventChunk: string) {
@@ -80,7 +85,8 @@ export async function POST(request: NextRequest) {
   try {
     const payload = await request.json();
     const companyName = String(payload?.companyName ?? "");
-    const sector = String(payload?.sector ?? "");
+    const businessModel = String(payload?.businessModel ?? "Other");
+    const industry = String(payload?.industry ?? "Other");
     const peers = String(payload?.peers ?? "");
     const context = String(payload?.context ?? "");
 
@@ -88,8 +94,10 @@ export async function POST(request: NextRequest) {
       month: "long",
       year: "numeric",
     });
-    const systemPrompt = await buildSystemPrompt(sector);
-    const userMessage = `Date: ${today}\nCompany: ${companyName}\nSector: ${sector}\nPeers: ${peers}\nAdditional Context: ${context}\n\nGenerate the full Agentic Commerce Readiness Report as a single self-contained HTML file.`;
+    const systemPrompt = await buildSystemPrompt(businessModel, industry);
+    const userMessage = `Date: ${today}\nCompany: ${companyName}\nBusiness Model: ${businessModel}\nIndustry: ${industry}\nPeers: ${peers}\nAdditional Context: ${context}${
+      industry !== "Financial Services" ? `\nIndustry Context: ${industry}` : ""
+    }\n\nGenerate the full Agentic Commerce Readiness Report as a single self-contained HTML file.`;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",

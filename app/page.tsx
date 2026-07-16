@@ -2,11 +2,20 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
-const sectors = ["B2B Industrial", "D2C Consumer", "Financial Services"];
+const businessModels = ["B2B", "D2C", "Other"];
+const industries = [
+  "Financial Services",
+  "Communication, Media & Technology",
+  "Health & Public Service",
+  "Products",
+  "Resources",
+  "Other",
+];
 
 export default function Home() {
   const [companyName, setCompanyName] = useState("");
-  const [sector, setSector] = useState(sectors[0]);
+  const [businessModel, setBusinessModel] = useState(businessModels[0]);
+  const [industry, setIndustry] = useState(industries[0]);
   const [peers, setPeers] = useState("");
   const [context, setContext] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -55,7 +64,8 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           companyName,
-          sector,
+          businessModel,
+          industry,
           peers,
           context,
         }),
@@ -157,16 +167,48 @@ export default function Home() {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-200" htmlFor="sector">
-                Sector
+              <label className="mb-2 block text-sm font-medium text-slate-200">
+                Business Model
+              </label>
+              <div className="flex flex-wrap gap-3">
+                {businessModels.map((item) => {
+                  const checked = businessModel === item;
+
+                  return (
+                    <label
+                      key={item}
+                      className={`flex cursor-pointer items-center gap-2 rounded-full border px-3 py-2 text-sm transition ${
+                        checked
+                          ? "border-fuchsia-400/40 bg-fuchsia-500/15 text-fuchsia-100"
+                          : "border-white/10 bg-slate-950/70 text-slate-300"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="businessModel"
+                        value={item}
+                        checked={checked}
+                        onChange={() => setBusinessModel(item)}
+                        className="h-4 w-4 border-white/15 bg-slate-950"
+                      />
+                      {item}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-200" htmlFor="industry">
+                Industry
               </label>
               <select
-                id="sector"
-                value={sector}
-                onChange={(event) => setSector(event.target.value)}
+                id="industry"
+                value={industry}
+                onChange={(event) => setIndustry(event.target.value)}
                 className="w-full rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none ring-0"
               >
-                {sectors.map((item) => (
+                {industries.map((item) => (
                   <option key={item} value={item}>
                     {item}
                   </option>
@@ -320,7 +362,7 @@ export default function Home() {
 
             <div className="mt-6 space-y-3 text-sm text-slate-300">
               <p>
-                <span className="font-semibold text-slate-100">Version:</span> 0.5
+                <span className="font-semibold text-slate-100">Version:</span> 0.6
               </p>
               <p>
                 <span className="font-semibold text-slate-100">Created:</span> July 2026
