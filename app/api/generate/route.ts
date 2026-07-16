@@ -1,15 +1,18 @@
-import { readFile } from "fs/promises";
-import path from "path";
 import { NextRequest, NextResponse } from "next/server";
+import {
+  REPORT_TEMPLATE,
+  SKILL_B2B,
+  SKILL_D2C,
+  SKILL_FS,
+  SKILL_RENDER,
+} from "./skills";
 
-const SECTOR_SKILL_FILES: Record<string, string> = {
-  "B2B Industrial": "SKILL_B2B_Industrial.md",
-  "D2C Consumer": "SKILL_D2C_Consumer.md",
-  "Financial Services": "SKILL_FS_Financial_Services.md",
+const SECTOR_SKILL_CONTENT: Record<string, string> = {
+  "B2B Industrial": SKILL_B2B,
+  "D2C Consumer": SKILL_D2C,
+  "Financial Services": SKILL_FS,
 };
 
-const RENDER_SKILL_FILE = "SKILL_Report_Rendering.md";
-const REPORT_TEMPLATE_FILE = "report_template.html";
 const FINAL_INSTRUCTION =
   "Return ONLY the raw HTML report. No markdown, no code fences, no explanation whatsoever.";
 const WEB_SEARCH_INSTRUCTION =
@@ -17,23 +20,13 @@ const WEB_SEARCH_INSTRUCTION =
 
 export const maxDuration = 300;
 
-async function readSkillContent(fileName: string) {
-  const filePath = path.join(process.cwd(), "skills", fileName);
-  return readFile(filePath, "utf8");
-}
-
-async function buildSystemPrompt(sector: string) {
-  const sectorSkillFile = SECTOR_SKILL_FILES[sector];
-  const sectorSkillContent = sectorSkillFile
-    ? await readSkillContent(sectorSkillFile)
-    : "";
-  const renderSkillContent = await readSkillContent(RENDER_SKILL_FILE);
-  const reportTemplateHtml = await readSkillContent(REPORT_TEMPLATE_FILE);
+function buildSystemPrompt(sector: string) {
+  const sectorSkillContent = SECTOR_SKILL_CONTENT[sector] ?? "";
 
   return [
     sectorSkillContent,
-    renderSkillContent,
-    reportTemplateHtml,
+    SKILL_RENDER,
+    REPORT_TEMPLATE,
     FINAL_INSTRUCTION,
     WEB_SEARCH_INSTRUCTION,
   ]
